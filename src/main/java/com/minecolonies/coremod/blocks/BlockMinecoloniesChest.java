@@ -13,6 +13,7 @@ import java.util.Locale;
 
 public class BlockMinecoloniesChest extends BlockChest
 {
+    //todo on destroyed drop normal chest!
     /**
      * The name of the block.
      */

@@ -1,6 +1,5 @@
 package com.minecolonies.coremod.tileentities;
 
-import net.minecraft.block.BlockChest;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
