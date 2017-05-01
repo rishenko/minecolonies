@@ -1,6 +1,7 @@
 package com.minecolonies.coremod.blocks;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
 
 /**
  * Class to create the modBlocks.
@@ -30,6 +31,7 @@ public final class ModBlocks
     public static final Block blockHutWareHouse      = new BlockHutWareHouse();
     public static final Block blockConstructionTape  = new BlockConstructionTape();
     public static final Block blockConstructionTapeCorner  = new BlockConstructionTapeCorner();
+    public static final Block blockMinecoloniesChest  = new BlockMinecoloniesChest(BlockChest.Type.BASIC);
 
 
     // Deactivated for now
