@@ -48,7 +48,7 @@ public class ScarecrowTileEntity extends TileEntityChest
     private ScareCrowType type;
 
     /**
-     * Name of the scarecrow, string set in the GUI.
+     * Name of the scarecrow, string content in the GUI.
      */
     private String name = LanguageHandler.format("com.minecolonies.coremod.gui.scarecrow.user", LanguageHandler.format("com.minecolonies.coremod.gui.scarecrow.user.noone"));
 
@@ -74,7 +74,7 @@ public class ScarecrowTileEntity extends TileEntityChest
     /**
      * Setter for the name.
      *
-     * @param name string to set.
+     * @param name string to content.
      */
     public void setName(final String name)
     {
@@ -166,7 +166,7 @@ public class ScarecrowTileEntity extends TileEntityChest
     /**
      * Set the inventory connected with the scarecrow.
      *
-     * @param inventoryField the field to set it to
+     * @param inventoryField the field to content it to
      */
     public final void setInventoryField(final InventoryField inventoryField)
     {

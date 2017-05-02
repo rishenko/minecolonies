@@ -51,6 +51,7 @@ public final class PlacementHandlers
         handlers.add(new BlockGrassPathPlacementHandler());
         handlers.add(new StairBlockPlacementHandler());
         handlers.add(new BlockSolidSubstitutionPlacementHandler());
+        handlers.add(new ChestPlacementHandler());
         handlers.add(new GeneralBlockPlacementHandler());
     }
 
@@ -110,6 +111,31 @@ public final class PlacementHandlers
             }
 
             return Blocks.DIRT.getDefaultState();
+        }
+    }
+
+    public static class ChestPlacementHandler implements IPlacementHandler
+    {
+        @Override
+        public Object handle(@NotNull final World world, @NotNull final BlockPos pos, @NotNull final IBlockState blockState,
+                @Nullable final AbstractEntityAIStructure placer)
+        {
+            if (blockState.getBlock() != Blocks.CHEST)
+            {
+                return ActionProcessingResult.IGNORE;
+            }
+
+            if(!Configurations.builderInfiniteResources && placer.checkOrRequestItems(placer.getTotalAmount(new ItemStack(Blocks.CHEST))))
+            {
+                return ActionProcessingResult.DENY;
+            }
+            placer.handleBuildingOverBlock(pos);
+            if (!placer.handleChestPlacement(pos))
+            {
+                return ActionProcessingResult.DENY;
+            }
+
+            return Blocks.CHEST.getDefaultState();
         }
     }
 

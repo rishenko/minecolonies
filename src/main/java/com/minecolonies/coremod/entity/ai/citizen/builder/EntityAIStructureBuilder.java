@@ -2,6 +2,7 @@ package com.minecolonies.coremod.entity.ai.citizen.builder;
 
 import com.minecolonies.coremod.blocks.AbstractBlockHut;
 import com.minecolonies.coremod.blocks.BlockSolidSubstitution;
+import com.minecolonies.coremod.blocks.ModBlocks;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingWorker;
 import com.minecolonies.coremod.colony.buildings.BuildingBuilder;
@@ -525,6 +526,12 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructure<JobBuild
         {
             building.addContainerPosition(pos);
         }
+    }
+
+    @Override
+    public boolean handleChestPlacement(@NotNull final BlockPos pos)
+    {
+        return world.setBlockState(pos, ModBlocks.blockMinecoloniesChest.getDefaultState());
     }
 
     @Override

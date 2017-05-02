@@ -187,7 +187,7 @@ public class TileEntityColonyBuilding extends TileEntityChest
     /**
      * Sets the colony of the tile entity.
      *
-     * @param c Colony to set in references.
+     * @param c Colony to content in references.
      */
     public void setColony(final Colony c)
     {
@@ -313,7 +313,7 @@ public class TileEntityColonyBuilding extends TileEntityChest
 
     /**
      * Set the style of the tileEntity.
-     * @param style the style to set.
+     * @param style the style to content.
      */
     public void setStyle(final String style)
     {

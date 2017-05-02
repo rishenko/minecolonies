@@ -1,145 +1,182 @@
 package com.minecolonies.coremod.tileentities;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.*;
+import com.minecolonies.coremod.util.ExtendedItemStack;
+import com.minecolonies.coremod.util.InventoryUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntityChest;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 
 public class TileEntityMinecoloniesChest extends TileEntityChest
 {
-    private ItemStack[] chestContents = new ItemStack[27];
+    private final HashMap<ExtendedItemStack, ExtendedItemStack> content = new HashMap<>();
 
     public TileEntityMinecoloniesChest()
     {
-
-    }
-
-    /**
-     * Returns the number of slots in the inventory.
-     */
-    public int getSizeInventory()
-    {
-        return 27;
+        super();
     }
 
     /**
      * Returns the stack in the given slot.
      */
     @Nullable
+    @Override
     public ItemStack getStackInSlot(int index)
     {
-        this.fillWithLoot((EntityPlayer)null);
-        return this.chestContents[index];
+        int i = 0;
+        for (final ExtendedItemStack stack : content.values())
+        {
+            int totalAmount = stack.getAmount();
+            double divisor = Math.max(64, totalAmount) / 64.0;
+
+            for (int partialStacks = 0; partialStacks < divisor; partialStacks++)
+            {
+                int size = Math.min(64, totalAmount);
+
+                if (i + partialStacks == index)
+                {
+                    final ItemStack returnStack = stack.getStack();
+                    returnStack.stackSize = size;
+                    return returnStack;
+                }
+                totalAmount -= size;
+            }
+            i += divisor;
+        }
+        return InventoryUtils.EMPTY;
+    }
+
+    @Override
+    public NBTTagCompound serializeNBT()
+    {
+        final NBTTagCompound compound = super.serializeNBT();
+        final NBTTagList nbttaglist = new NBTTagList();
+        for (final ExtendedItemStack stack : content.values())
+        {
+            stack.writeToNBT(compound);
+        }
+
+        compound.setTag("Items", nbttaglist);
+
+        return compound;
+    }
+
+    @Override
+    public void deserializeNBT(final NBTTagCompound nbt)
+    {
+        super.deserializeNBT(nbt);
+        final NBTTagList nbttaglist = nbt.getTagList("Items", 10);
+        for (int i = 0; i < nbttaglist.tagCount(); ++i)
+        {
+            final NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+            final ExtendedItemStack stack = ExtendedItemStack.readFromNBT(nbttagcompound);
+            content.put(stack, stack);
+        }
     }
 
     /**
      * Removes up to a specified number of items from an inventory slot and returns them in a new stack.
      */
     @Nullable
+    @Override
     public ItemStack decrStackSize(int index, int count)
     {
-        this.fillWithLoot((EntityPlayer)null);
-        ItemStack itemstack = ItemStackHelper.getAndSplit(this.chestContents, index, count);
-
-        if (itemstack != null)
+        this.markDirty();
+        int i = 0;
+        for (final ExtendedItemStack stack : content.values())
         {
-            this.markDirty();
-        }
+            int totalAmount = stack.getAmount();
+            double divisor = Math.max(64, totalAmount) / 64.0;
 
-        return itemstack;
+            for (int partialStacks = 0; partialStacks < divisor; partialStacks++)
+            {
+                int size = Math.min(64, totalAmount);
+                if (i + partialStacks == index)
+                {
+                    final ItemStack returnStack = stack.getAsItemStackWithAmount(count);
+                    if (stack.getAmount() == 0)
+                    {
+                        content.remove(stack);
+                    }
+                    return returnStack;
+                }
+                totalAmount -= size;
+            }
+            i += divisor;
+        }
+        return InventoryUtils.EMPTY;
     }
 
     /**
      * Removes a stack from the given slot and returns it.
      */
     @Nullable
+    @Override
     public ItemStack removeStackFromSlot(int index)
     {
-        this.fillWithLoot((EntityPlayer)null);
-        return ItemStackHelper.getAndRemove(this.chestContents, index);
+        this.markDirty();
+        int i = 0;
+        for (final ExtendedItemStack stack : content.values())
+        {
+            int totalAmount = stack.getAmount();
+            double divisor = Math.max(64, totalAmount) / 64.0;
+
+            for (int partialStacks = 0; partialStacks < divisor; partialStacks++)
+            {
+                int size = Math.min(64, totalAmount);
+
+                if (i + partialStacks == index)
+                {
+                    return stack.getAsItemStackWithAmount(size);
+                }
+                totalAmount -= size;
+            }
+            i += divisor;
+        }
+        return InventoryUtils.EMPTY;
     }
 
     /**
      * Sets the given item stack to the specified slot in the inventory (can be crafting or armor sections).
      */
+    @Override
     public void setInventorySlotContents(int index, @Nullable ItemStack stack)
     {
-        this.fillWithLoot((EntityPlayer)null);
-        this.chestContents[index] = stack;
-
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit())
+        if (stack == null)
         {
-            stack.stackSize = this.getInventoryStackLimit();
+            return;
         }
+
+        if (content.containsKey(new ExtendedItemStack(stack, 0)))
+        {
+            ExtendedItemStack ext = content.remove(new ExtendedItemStack(stack, 0));
+            ext.increaseAmount(stack.stackSize);
+            content.put(ext, ext);
+        }
+        else
+        {
+            final ExtendedItemStack ext = new ExtendedItemStack(stack, stack.stackSize);
+            content.put(ext, ext);
+        }
+        stack.stackSize = 0;
 
         this.markDirty();
     }
 
-    public void readFromNBT(NBTTagCompound compound)
+    public boolean addItemStackToInventory(@org.jetbrains.annotations.Nullable final ItemStack itemStackIn)
     {
-        super.readFromNBT(compound);
-        this.chestContents = new ItemStack[this.getSizeInventory()];
-
-        if (!this.checkLootAndRead(compound))
-        {
-            NBTTagList nbttaglist = compound.getTagList("Items", 10);
-
-            for (int i = 0; i < nbttaglist.tagCount(); ++i)
-            {
-                NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
-                int j = nbttagcompound.getByte("Slot") & 255;
-
-                if (j >= 0 && j < this.chestContents.length)
-                {
-                    this.chestContents[j] = ItemStack.loadItemStackFromNBT(nbttagcompound);
-                }
-            }
-        }
+        return true;
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound)
-    {
-        super.writeToNBT(compound);
-
-        if (!this.checkLootAndWrite(compound))
-        {
-            NBTTagList nbttaglist = new NBTTagList();
-
-            for (int i = 0; i < this.chestContents.length; ++i)
-            {
-                if (this.chestContents[i] != null)
-                {
-                    NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    nbttagcompound.setByte("Slot", (byte)i);
-                    this.chestContents[i].writeToNBT(nbttagcompound);
-                    nbttaglist.appendTag(nbttagcompound);
-                }
-            }
-
-            compound.setTag("Items", nbttaglist);
-        }
-
-        return compound;
-    }
-
-    public void updateContainingBlockInfo()
-    {
-        super.updateContainingBlockInfo();
-        this.adjacentChestChecked = false;
-        doubleChestHandler = null;
-    }
-
+    /**
+     * Clear the inventory.
+     */
+    @Override
     public void clear()
     {
-        this.fillWithLoot((EntityPlayer)null);
-
-        for (int i = 0; i < this.chestContents.length; ++i)
-        {
-            this.chestContents[i] = null;
-        }
+        content.clear();
     }
 }

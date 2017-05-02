@@ -21,15 +21,12 @@ import com.minecolonies.coremod.tileentities.TileEntityMinecoloniesChest;
 import com.minecolonies.coremod.util.Log;
 import com.minecolonies.structures.event.RenderEventHandler;
 import com.minecolonies.structures.helpers.Settings;
-import net.minecraft.block.BlockChest;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemModelMesher;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.block.statemap.DefaultStateMapper;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.client.renderer.tileentity.TileEntityChestRenderer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.model.ModelLoader;
@@ -128,7 +125,6 @@ public class ClientProxy extends CommonProxy
                 new ModelResourceLocation(ModBlocks.blockConstructionTape.getRegistryName(), INVENTORY));
         itemModelMesher.register(Item.getItemFromBlock(ModBlocks.blockConstructionTapeCorner), 0,
                 new ModelResourceLocation(ModBlocks.blockConstructionTapeCorner.getRegistryName(), INVENTORY));
-        itemModelMesher.register(Item.getItemFromBlock(ModBlocks.blockMinecoloniesChest), 0, new ModelResourceLocation(Blocks.CHEST.getRegistryName(), INVENTORY));
 
         itemModelMesher.register(ModItems.buildTool, 0, new ModelResourceLocation(ModItems.buildTool.getRegistryName(), INVENTORY));
         itemModelMesher.register(ModItems.caliper, 0, new ModelResourceLocation(ModItems.caliper.getRegistryName(), INVENTORY));
@@ -148,7 +144,7 @@ public class ClientProxy extends CommonProxy
             @Override
             protected ModelResourceLocation getModelResourceLocation(final IBlockState state)
             {
-                return new ModelResourceLocation(ModItems.permTool.getRegistryName(), INVENTORY) ;
+                return new ModelResourceLocation(ModItems.permTool.getRegistryName(), "normal") ;
             }
         });
 

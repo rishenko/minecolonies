@@ -467,6 +467,15 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJob> extends A
     }
 
     /**
+     * Called when placing a chest. Let worker decide if has to handle it.
+     * @param pos
+     */
+    public boolean handleChestPlacement(@NotNull final BlockPos pos)
+    {
+        return world.setBlockState(pos, ModBlocks.blockMinecoloniesChest.getDefaultState());
+    }
+
+    /**
      * Start building this Structure.
      * <p>
      * Will determine where to start.
