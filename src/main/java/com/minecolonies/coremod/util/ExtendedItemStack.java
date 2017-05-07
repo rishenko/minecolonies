@@ -78,7 +78,7 @@ public class ExtendedItemStack
     /**
      * Read the stack fields from a NBT object.
      */
-    public static ExtendedItemStack readFromNBT(NBTTagCompound nbt)
+    public static ExtendedItemStack readFromNBT(final NBTTagCompound nbt)
     {
         final ItemStack stack = ItemStack.loadItemStackFromNBT(nbt);
         final int amount = nbt.getInteger(TAG_AMOUNT);
@@ -88,7 +88,7 @@ public class ExtendedItemStack
     /**
      * Write the stack fields to a NBT object. Return the new NBT object.
      */
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
+    public NBTTagCompound writeToNBT(final NBTTagCompound nbt)
     {
         this.stack.writeToNBT(nbt);
         nbt.setInteger(TAG_AMOUNT, amount);
