@@ -6,7 +6,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityChest;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -26,6 +29,21 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
     {
         super();
         chest = new InventoryChest();
+    }
+
+    @NotNull
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket()
+    {
+        @NotNull final NBTTagCompound tag = new NBTTagCompound();
+        writeToNBT(tag);
+        return new SPacketUpdateTileEntity(this.getPos(), 0, tag);
+    }
+
+    @Override
+    public void onDataPacket(final NetworkManager net, @NotNull final SPacketUpdateTileEntity pkt)
+    {
+        readFromNBT(pkt.getNbtCompound());
     }
 
     /**
@@ -54,6 +72,11 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
             localCompound.setTag(Constants.MOD_ID + TAG_INVENTORY, chest.serializeNBT());
         }
         return localCompound;
+    }
+
+    public void close()
+    {
+        numPlayersUsing = 0;
     }
 
     /**

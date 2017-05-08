@@ -41,7 +41,7 @@ public class InventoryChest extends Container implements IItemHandler
     /**
      * TileEntity of the chest.
      */
-    private final TileEntity entity;
+    private final TileEntityMinecoloniesChest entity;
 
     /**
      * The hashmap with the content of the inventory.
@@ -101,6 +101,12 @@ public class InventoryChest extends Container implements IItemHandler
     }
 
     @Override
+    public void onContainerClosed(final EntityPlayer playerIn)
+    {
+        entity.close();
+    }
+
+    @Override
     public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate)
     {
         return null;
@@ -119,6 +125,7 @@ public class InventoryChest extends Container implements IItemHandler
     {
         if(this.entity != null)
         {
+            entity.setInventory(this);
             entity.markDirty();
         }
     }
@@ -196,6 +203,7 @@ public class InventoryChest extends Container implements IItemHandler
 
     private int addToInventory(final ItemStack stackInSlot)
     {
+        markDirty();
         int fullSlots = 0;
 
         for(ExtendedItemStack stack: content.values())
@@ -223,7 +231,6 @@ public class InventoryChest extends Container implements IItemHandler
             content.put(ext, ext);
         }
 
-        markDirty();
         return 0;
     }
 
