@@ -67,6 +67,15 @@ public class ExtendedItemStack
     }
 
     /**
+     * Decrease the quantity by a certain amount.
+     * @param decreaseBy the amount to decrease it by.
+     */
+    public void decreaseAmount(final int decreaseBy)
+    {
+        this.amount -= decreaseBy;
+    }
+
+    /**
      * Get the itemStack of the extension.
      * @return the stack with amount 0.
      */

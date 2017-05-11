@@ -5,6 +5,8 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -28,9 +30,9 @@ public class GuiChest extends GuiContainer
      * @param world              the world the field is in.
      * @param location           the location the field is at.
      */
-    public GuiChest(final InventoryPlayer parInventoryPlayer, final TileEntityMinecoloniesChest tileEntity)
+    public GuiChest(final InventoryPlayer parInventoryPlayer, final TileEntityMinecoloniesChest tileEntity , final World world, final BlockPos location)
     {
-        super(new InventoryChest(tileEntity, parInventoryPlayer));
+        super(new ContainerChest(tileEntity, parInventoryPlayer, world, location));
         this.inventoryRows = tileEntity.getSizeInventory() / 9;
         this.ySize = 114 + this.inventoryRows * 18;
     }

@@ -1,62 +1,67 @@
 package com.minecolonies.coremod.tileentities;
 
+import com.minecolonies.blockout.Log;
 import com.minecolonies.coremod.inventory.InventoryChest;
-import com.minecolonies.coremod.lib.Constants;
+import com.minecolonies.coremod.util.ExtendedItemStack;
+import com.minecolonies.coremod.util.InventoryUtils;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntityChest;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 
 public class TileEntityMinecoloniesChest extends TileEntityChest
 {
     /**
-     * Tag to store inventory to nbt.
+     * Tag to store the content.
      */
-    private static final String TAG_INVENTORY  = "inventory";
+    private static final String TAG_CONTENT = "items";
 
     /**
-     * The inventory connected with the scarecrow.
+     * The hashmap with the content of the inventory.
      */
-    private InventoryChest chest;
+    private final HashMap<ExtendedItemStack, ExtendedItemStack> content = new HashMap<>();
+
+    /**
+     * The inventory connected with the chest.
+     */
+    private InventoryChest inventory;
 
     public TileEntityMinecoloniesChest()
     {
         super();
-        chest = new InventoryChest();
-    }
-
-    /**
-     * Returns the stack in the given slot.
-     */
-    @Nullable
-    @Override
-    public ItemStack getStackInSlot(int index)
-    {
-        return chest.getStackInSlot(index);
+        this.inventory = new InventoryChest();
     }
 
     @Override
     public void readFromNBT(final NBTTagCompound compound)
     {
         super.readFromNBT(compound);
-        chest = InventoryChest.deserializeFromNBT(compound.getCompoundTag(Constants.MOD_ID + TAG_INVENTORY));
+        content.clear();
+        final NBTTagList nbttaglist = compound.getTagList(TAG_CONTENT, net.minecraftforge.common.util.Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < nbttaglist.tagCount(); ++i)
+        {
+            final NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+            final ExtendedItemStack stack = ExtendedItemStack.readFromNBT(nbttagcompound);
+            content.put(stack, stack);
+        }
     }
 
     @Override
     public NBTTagCompound writeToNBT(final NBTTagCompound compound)
     {
-        final NBTTagCompound localCompound = super.writeToNBT(compound);
-        if(chest != null)
+        final NBTTagList nbttaglist = new NBTTagList();
+        for (final ExtendedItemStack stack : content.values())
         {
-            localCompound.setTag(Constants.MOD_ID + TAG_INVENTORY, chest.serializeNBT());
+            final NBTTagCompound stackCompound = new NBTTagCompound();
+            stack.writeToNBT(stackCompound);
+            nbttaglist.appendTag(stackCompound);
         }
-        return localCompound;
-    }
-
-    public void close()
-    {
-        numPlayersUsing = 0;
+        compound.setTag(TAG_CONTENT, nbttaglist);
+        return compound;
     }
 
     /**
@@ -66,7 +71,26 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
     @Override
     public ItemStack decrStackSize(int index, int count)
     {
-        return chest.decrStackSize(index, count);
+        final ItemStack returnStack = super.decrStackSize(index, count);
+        if(!InventoryUtils.isItemStackEmpty(returnStack))
+        {
+            final ItemStack copy = returnStack.copy();
+            copy.stackSize = 0;
+            if (content.containsKey(new ExtendedItemStack(copy, 0)))
+            {
+                final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
+                ext.decreaseAmount(returnStack.stackSize);
+
+                if(ext.getAmount() > 0)
+                {
+                    content.put(ext, ext);
+                    Log.getLogger().info("Has: " + ext.getAmount() + " " + ext.getStack().getDisplayName());
+                }
+                Log.getLogger().info("Has: 0" + ext.getStack().getDisplayName());
+
+            }
+        }
+        return returnStack;
     }
 
     /**
@@ -76,7 +100,49 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
     @Override
     public ItemStack removeStackFromSlot(int index)
     {
-        return chest.removeStackFromSlot(index);
+        final ItemStack returnStack = super.removeStackFromSlot(index);
+        if(!InventoryUtils.isItemStackEmpty(returnStack))
+        {
+            removeFromContent(returnStack);
+        }
+        return returnStack;
+    }
+
+    public void addToContent(final ItemStack stack)
+    {
+        final ItemStack copy = stack.copy();
+        copy.stackSize = 0;
+        if (content.containsKey(new ExtendedItemStack(copy, 0)))
+        {
+            final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
+            ext.increaseAmount(stack.stackSize);
+            content.put(ext, ext);
+            Log.getLogger().info("Has: " + ext.getAmount() + " " + ext.getStack().getDisplayName());
+        }
+        else
+        {
+            final ExtendedItemStack ext = new ExtendedItemStack(copy, stack.stackSize);
+            Log.getLogger().info("Has: " + ext.getAmount() + " " + ext.getStack().getDisplayName());
+            content.put(ext, ext);
+        }
+    }
+
+    public void removeFromContent(final ItemStack stack)
+    {
+        final ItemStack copy = stack.copy();
+        copy.stackSize = 0;
+        if (content.containsKey(new ExtendedItemStack(copy, 0)))
+        {
+            final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
+            ext.decreaseAmount(stack.stackSize);
+
+            if(ext.getAmount() > 0)
+            {
+                Log.getLogger().info("Has: " + ext.getAmount() + " " + ext.getStack().getDisplayName());
+                content.put(ext, ext);
+            }
+            Log.getLogger().info("Has: 0 " + ext.getStack().getDisplayName());
+        }
     }
 
     /**
@@ -85,7 +151,32 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
     @Override
     public void setInventorySlotContents(int index, @Nullable ItemStack stack)
     {
-        chest.setInventorySlotContents(index, stack);
+        if(!InventoryUtils.isItemStackEmpty(stack) && !InventoryUtils.compareItemStacksIgnoreStackSize(stack, getStackInSlot(index)))
+        {
+            addToContent(stack);
+        }
+        super.setInventorySlotContents(index, stack);
+    }
+
+
+    /**
+     * Get the inventory connected with the chest.
+     *
+     * @return the inventory of this chest.
+     */
+    public InventoryChest getInventory()
+    {
+        return inventory;
+    }
+
+    /**
+     * Set the inventory connected with the chest.
+     *
+     * @param inventory the chest to connect it to.
+     */
+    public final void setInventory(final InventoryChest inventory)
+    {
+        this.inventory = inventory;
     }
 
     /**
@@ -94,24 +185,7 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
     @Override
     public void clear()
     {
-        chest.clear();
-    }
-
-    /**
-     * Getter for the inventory.
-     * @return the stackHandler.
-     */
-    public InventoryChest getInventory()
-    {
-        return this.chest;
-    }
-
-    /**
-     * Set the inventory.
-     * @param inventory to set.
-     */
-    public void setInventory(final InventoryChest inventory)
-    {
-        this.chest = inventory;
+        content.clear();
+        super.clear();
     }
 }

@@ -1653,7 +1653,7 @@ public final class InventoryUtils
      * @return True when they are equal except the stacksize, false when not.
      */
     @NotNull
-    public static Boolean compareItemStacksIgnoreStackSize(@Nullable final ItemStack itemStack1, @Nullable final ItemStack itemStack2)
+    public static boolean compareItemStacksIgnoreStackSize(@Nullable final ItemStack itemStack1, @Nullable final ItemStack itemStack2)
     {
         //If both stacks are not null/Empty and items and metadata are equal.
         if (!isItemStackEmpty(itemStack1) && !isItemStackEmpty(itemStack2)
