@@ -91,15 +91,8 @@ public class InventoryChest extends Container implements IItemHandler
     @Override
     public int getSlots()
     {
-        return 27;
+        return MAX_INVENTORY_INDEX;
     }
-
-    @Override
-    protected boolean mergeItemStack(final ItemStack stack, final int startIndex, final int endIndex, final boolean reverseDirection)
-    {
-        return super.mergeItemStack(stack, startIndex, endIndex, reverseDirection);
-    }
-
     @Override
     public void onContainerClosed(final EntityPlayer playerIn)
     {
@@ -185,7 +178,8 @@ public class InventoryChest extends Container implements IItemHandler
         else
         {
             int index = slotIndex - this.getSlots();
-            index = index >= 27 ? index - 27 : index + 9;
+            index = index >= MAX_INVENTORY_INDEX ? index - MAX_INVENTORY_INDEX
+                    : index + INVENTORY_HOT_BAR_SIZE;
             if (playerIn.inventory.getStackInSlot(index) != InventoryUtils.EMPTY)
             {
                 int remain = this.addToInventory(playerIn.inventory.getStackInSlot(index));
