@@ -4,16 +4,16 @@ import com.minecolonies.blockout.Log;
 import com.minecolonies.coremod.inventory.InventoryChest;
 import com.minecolonies.coremod.util.ExtendedItemStack;
 import com.minecolonies.coremod.util.InventoryUtils;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntityChest;
+import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 
-public class TileEntityMinecoloniesChest extends TileEntityChest
+public class TileEntityMinecoloniesChest extends TileEntityChest implements IItemHandler
 {
     /**
      * Tag to store the content.
@@ -145,13 +145,38 @@ public class TileEntityMinecoloniesChest extends TileEntityChest
         }
     }
 
+    @Override
+    public int getSlots()
+    {
+        return 27;
+    }
+
+    @Nullable
+    @Override
+    public ItemStack getStackInSlot(final int index)
+    {
+        return super.getStackInSlot(index);
+    }
+
+    @Override
+    public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate)
+    {
+        return null;
+    }
+
+    @Override
+    public ItemStack extractItem(final int slot, final int amount, final boolean simulate)
+    {
+        return null;
+    }
+
     /**
      * Sets the given item stack to the specified slot in the inventory (can be crafting or armor sections).
      */
     @Override
     public void setInventorySlotContents(int index, @Nullable ItemStack stack)
     {
-        if(!InventoryUtils.isItemStackEmpty(stack) && !InventoryUtils.compareItemStacksIgnoreStackSize(stack, getStackInSlot(index)))
+        if(!InventoryUtils.isItemStackEmpty(stack) && worldObj!= null && !worldObj.isRemote)
         {
             addToContent(stack);
         }
