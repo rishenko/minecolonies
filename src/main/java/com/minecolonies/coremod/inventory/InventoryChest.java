@@ -14,6 +14,12 @@ public class InventoryChest extends ItemStackHandler
     }
 
     @Override
+    public void setStackInSlot(final int slot, final ItemStack stack)
+    {
+        super.setStackInSlot(slot, stack);
+    }
+
+    @Override
     public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate)
     {
         return super.insertItem(slot, stack, simulate);

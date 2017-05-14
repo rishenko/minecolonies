@@ -134,8 +134,19 @@ public class ContainerChest extends Container
                 slot.onSlotChanged();
             }
         }
-
         return itemstack;
+    }
+
+    @Override
+    public void putStackInSlot(final int slotID, final ItemStack stack)
+    {
+        super.putStackInSlot(slotID, stack);
+    }
+
+    @Override
+    public void putStacksInSlots(final ItemStack[] stack)
+    {
+        super.putStacksInSlots(stack);
     }
 
     @Override

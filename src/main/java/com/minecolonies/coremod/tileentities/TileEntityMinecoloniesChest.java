@@ -178,7 +178,15 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
     {
         if(!InventoryUtils.isItemStackEmpty(stack) && worldObj!= null && !worldObj.isRemote)
         {
-            addToContent(stack);
+            final ItemStack stackAtSlot = getStackInSlot(index);
+            final ItemStack copy = stack.copy();
+
+            if(stackAtSlot != null && stackAtSlot.isItemEqual(stack))
+            {
+                copy.stackSize -= stackAtSlot.stackSize;
+            }
+
+            addToContent(copy);
         }
         super.setInventorySlotContents(index, stack);
     }
