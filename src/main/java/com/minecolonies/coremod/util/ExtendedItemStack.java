@@ -58,24 +58,6 @@ public class ExtendedItemStack
     }
 
     /**
-     * Increase the quantity by a certain amount.
-     * @param increaseBy the amount to increase it by.
-     */
-    public void increaseAmount(final int increaseBy)
-    {
-        this.amount += increaseBy;
-    }
-
-    /**
-     * Decrease the quantity by a certain amount.
-     * @param decreaseBy the amount to decrease it by.
-     */
-    public void decreaseAmount(final int decreaseBy)
-    {
-        this.amount -= decreaseBy;
-    }
-
-    /**
      * Get the itemStack of the extension.
      * @return the stack with amount 0.
      */

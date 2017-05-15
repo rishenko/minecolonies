@@ -32,11 +32,6 @@ public class ContainerChest extends Container
     private BlockPos location;
 
     /**
-     * The inventory of the field.
-     */
-    private InventoryChest inventory;
-
-    /**
      * Private constructor to create field from NBT.
      *
      * @param colony the colony the field belongs to.
@@ -60,7 +55,6 @@ public class ContainerChest extends Container
         super();
         this.colony = ColonyManager.getColony(world, location);
         this.location = location;
-        this.inventory = chest.getInventory();
 
         int i = (3 - 4) * 18;
 
@@ -135,18 +129,6 @@ public class ContainerChest extends Container
             }
         }
         return itemstack;
-    }
-
-    @Override
-    public void putStackInSlot(final int slotID, final ItemStack stack)
-    {
-        super.putStackInSlot(slotID, stack);
-    }
-
-    @Override
-    public void putStacksInSlots(final ItemStack[] stack)
-    {
-        super.putStacksInSlots(stack);
     }
 
     @Override

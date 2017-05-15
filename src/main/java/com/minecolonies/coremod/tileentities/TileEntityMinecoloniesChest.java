@@ -1,7 +1,6 @@
 package com.minecolonies.coremod.tileentities;
 
 import com.minecolonies.blockout.Log;
-import com.minecolonies.coremod.inventory.InventoryChest;
 import com.minecolonies.coremod.util.ExtendedItemStack;
 import com.minecolonies.coremod.util.InventoryUtils;
 import net.minecraft.item.ItemStack;
@@ -25,15 +24,9 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
      */
     private final HashMap<ExtendedItemStack, ExtendedItemStack> content = new HashMap<>();
 
-    /**
-     * The inventory connected with the chest.
-     */
-    private InventoryChest inventory;
-
     public TileEntityMinecoloniesChest()
     {
         super();
-        this.inventory = new InventoryChest();
     }
 
     @Override
@@ -79,8 +72,6 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
             if (content.containsKey(new ExtendedItemStack(copy, 0)))
             {
                 final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
-                ext.decreaseAmount(returnStack.stackSize);
-
                 if(ext.getAmount() > 0)
                 {
                     content.put(ext, ext);
@@ -115,7 +106,6 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
         if (content.containsKey(new ExtendedItemStack(copy, 0)))
         {
             final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
-            ext.increaseAmount(stack.stackSize);
             content.put(ext, ext);
             Log.getLogger().info("Has: " + ext.getAmount() + " " + ext.getStack().getDisplayName());
         }
@@ -134,7 +124,6 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
         if (content.containsKey(new ExtendedItemStack(copy, 0)))
         {
             final ExtendedItemStack ext = content.remove(new ExtendedItemStack(copy, 0));
-            ext.decreaseAmount(stack.stackSize);
 
             if(ext.getAmount() > 0)
             {
@@ -189,27 +178,6 @@ public class TileEntityMinecoloniesChest extends TileEntityChest implements IIte
             addToContent(copy);
         }
         super.setInventorySlotContents(index, stack);
-    }
-
-
-    /**
-     * Get the inventory connected with the chest.
-     *
-     * @return the inventory of this chest.
-     */
-    public InventoryChest getInventory()
-    {
-        return inventory;
-    }
-
-    /**
-     * Set the inventory connected with the chest.
-     *
-     * @param inventory the chest to connect it to.
-     */
-    public final void setInventory(final InventoryChest inventory)
-    {
-        this.inventory = inventory;
     }
 
     /**
