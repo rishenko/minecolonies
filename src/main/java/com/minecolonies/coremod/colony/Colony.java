@@ -1,11 +1,13 @@
 package com.minecolonies.coremod.colony;
 
+import com.minecolonies.api.colony.permissions.Rank;
+import com.minecolonies.api.configuration.Configurations;
+import com.minecolonies.api.util.*;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.achievements.ModAchievements;
 import com.minecolonies.coremod.colony.buildings.*;
 import com.minecolonies.coremod.colony.permissions.Permissions;
 import com.minecolonies.coremod.colony.workorders.AbstractWorkOrder;
-import com.minecolonies.coremod.configuration.Configurations;
 import com.minecolonies.coremod.entity.EntityCitizen;
 import com.minecolonies.coremod.entity.ai.citizen.builder.ConstructionTapeHelper;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.Field;
@@ -13,7 +15,9 @@ import com.minecolonies.coremod.network.messages.*;
 import com.minecolonies.coremod.permissions.ColonyPermissionEventHandler;
 import com.minecolonies.coremod.tileentities.ScarecrowTileEntity;
 import com.minecolonies.coremod.tileentities.TileEntityColonyBuilding;
-import com.minecolonies.coremod.util.*;
+import com.minecolonies.coremod.util.AchievementUtils;
+import com.minecolonies.coremod.util.ColonyUtils;
+import com.minecolonies.coremod.util.ServerUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -55,10 +59,12 @@ public class Colony implements IColony
     private static final String TAG_ACHIEVEMENT_LIST           = "achievementlist";
     private static final String TAG_WORK                       = "work";
     private static final String TAG_MANUAL_HIRING              = "manualHiring";
+    private static final String TAG_MANUAL_HOUSING             = "manualHousing";
     private static final String TAG_WAYPOINT                   = "waypoints";
     private static final String TAG_FREE_BLOCKS                = "freeBlocks";
     private static final String TAG_FREE_POSITIONS             = "freePositions";
     private static final String TAG_HAPPINESS                  = "happiness";
+    private static final String TAG_ABANDONED                  = "abandoned";
 
     //statistics tags
     private static final String TAG_STATISTICS        = "statistics";
@@ -93,6 +99,16 @@ public class Colony implements IColony
     private static final int    NUM_ACHIEVEMENT_THIRD     = 100;
     private static final int    NUM_ACHIEVEMENT_FOURTH    = 500;
     private static final int    NUM_ACHIEVEMENT_FIFTH     = 1000;
+
+    /**
+     * Amount of ticks that pass/hour.
+     */
+    private static final int TICKS_HOUR = 20 * 60 * 60;
+
+    /**
+     * The hours the colony is without contact with its players.
+     */
+    private int lastContactInHours = 0;
 
     /**
      * Bonus happiness each factor added.
@@ -161,6 +177,8 @@ public class Colony implements IColony
     private       boolean                         isCitizensDirty  = false;
     private       boolean                         isBuildingsDirty = false;
     private       boolean                         manualHiring     = false;
+    private       boolean                         manualHousing     = false;
+
     private       boolean                         isFieldsDirty    = false;
     private       String                          name             = "ERROR(Wasn't placed by player)";
     private BlockPos         center;
@@ -183,6 +201,11 @@ public class Colony implements IColony
      * The Blocks which players can freely interact with.
      */
     private final Set<Block> freeBlocks = new HashSet<>();
+
+    /**
+     * Amount of ticks passed.
+     */
+    private int ticksPassed = 0;
 
     /**
      * Constructor for a newly created Colony.
@@ -366,6 +389,8 @@ public class Colony implements IColony
         {
             this.overallHappiness = AVERAGE_HAPPINESS;
         }
+        lastContactInHours = compound.getInteger(TAG_ABANDONED);
+        manualHousing = compound.getBoolean(TAG_MANUAL_HOUSING);
     }
 
     /**
@@ -417,7 +442,6 @@ public class Colony implements IColony
 
         compound.setBoolean(TAG_MANUAL_HIRING, manualHiring);
         compound.setInteger(TAG_MAX_CITIZENS, maxCitizens);
-
 
         // Permissions
         permissions.savePermissions(compound);
@@ -524,6 +548,8 @@ public class Colony implements IColony
         compound.setTag(TAG_FREE_POSITIONS, freePositionsTagList);
 
         compound.setDouble(TAG_HAPPINESS, overallHappiness);
+        compound.setInteger(TAG_ABANDONED, lastContactInHours);
+        compound.setBoolean(TAG_MANUAL_HOUSING, manualHousing);
     }
 
     /**
@@ -799,9 +825,11 @@ public class Colony implements IColony
         if (!w.equals(world))
         {
             /**
-             * It's not very good to crash here. We should simply log this so we can remove this colony.
+             * If the event world is not the colony world ignore. This might happen in interactions with other mods.
+             * This should not be a problem for minecolonies as long as we take care to do nothing in that moment.
              */
             Log.getLogger().error("Colony %d has the wrong world, colony probably should be removed if this is being spammed.", id);
+            return;
         }
 
         world = null;
@@ -846,6 +874,20 @@ public class Colony implements IColony
           .stream()
           .filter(permissions::isSubscriber)
           .forEachOrdered(subscribers::add);
+
+        if(subscribers.isEmpty())
+        {
+            if(ticksPassed >= TICKS_HOUR)
+            {
+                ticksPassed = 0;
+                lastContactInHours++;
+            }
+            ticksPassed++;
+        }
+        else
+        {
+            ticksPassed = 0;
+        }
 
         //  Add nearby players
         for (final EntityPlayer o : world.playerEntities)
@@ -949,7 +991,7 @@ public class Colony implements IColony
               .stream()
               .filter(player -> permissions.isDirty() || !oldSubscribers.contains(player)).forEach(player ->
             {
-                final Permissions.Rank rank = getPermissions().getRank(player);
+                final Rank rank = getPermissions().getRank(player);
                 MineColonies.getNetwork().sendTo(new PermissionsMessage.View(this, rank), player);
             });
         }
@@ -1307,8 +1349,6 @@ public class Colony implements IColony
             }
         }
 
-        removedBuildings.forEach(AbstractBuilding::destroy);
-
         @NotNull final ArrayList<Field> tempFields = new ArrayList<>(fields.values());
 
         for (@NotNull final Field field : tempFields)
@@ -1327,7 +1367,7 @@ public class Colony implements IColony
             }
         }
 
-        markFieldsDirty();
+        removedBuildings.forEach(AbstractBuilding::destroy);
     }
 
     /**
@@ -1682,6 +1722,27 @@ public class Colony implements IColony
     }
 
     /**
+     * Getter which checks if houses should be manually allocated.
+     *
+     * @return true of false.
+     */
+    public boolean isManualHousing()
+    {
+        return manualHousing;
+    }
+
+    /**
+     * Setter to set the house allocation manual or automatic.
+     *
+     * @param manualHousing true if manual, false if automatic.
+     */
+    public void setManualHousing(final boolean manualHousing)
+    {
+        this.manualHousing = manualHousing;
+        markDirty();
+    }
+
+    /**
      * Returns the max amount of citizens in the colony.
      *
      * @return Max amount of citizens.
@@ -1847,14 +1908,15 @@ public class Colony implements IColony
         final double minX = Math.min(position.getX(), target.getX());
         final double minZ = Math.min(position.getZ(), target.getZ());
 
-        final List<BlockPos> wayPointsCopy = new ArrayList<>(tempWayPoints);
-        for (final BlockPos p : wayPointsCopy)
+        final Iterator<BlockPos> iterator = tempWayPoints.iterator();
+        while (iterator.hasNext())
         {
+            final BlockPos p = iterator.next();
             final int x = p.getX();
             final int z = p.getZ();
             if (x < minX || x > maxX || z < minZ || z > maxZ)
             {
-                tempWayPoints.remove(p);
+                iterator.remove();
             }
         }
 
@@ -1909,5 +1971,11 @@ public class Colony implements IColony
     public Map<BlockPos, IBlockState> getWayPoints()
     {
         return new HashMap<>(wayPoints);
+    }
+
+    @Override
+    public int getLastContactInHours()
+    {
+        return lastContactInHours;
     }
 }

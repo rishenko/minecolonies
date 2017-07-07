@@ -1,7 +1,7 @@
 package com.minecolonies.coremod.client.gui;
 
+import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.colony.buildings.BuildingWareHouse;
-import com.minecolonies.coremod.lib.Constants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WindowWareHouseBuilding extends AbstractWindowBuilding<BuildingWareHouse.View>
 {
-    private static final String HOME_BUILDING_RESOURCE_SUFFIX = ":gui/windowHutHome.xml";
+    private static final String HOME_BUILDING_RESOURCE_SUFFIX = ":gui/windowHutWarehouse.xml";
 
     /**
      * Creates the Window object.
