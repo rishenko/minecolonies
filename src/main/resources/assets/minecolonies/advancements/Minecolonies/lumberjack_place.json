@@ -1,0 +1,18 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecolonies:blockhutlumberjack"
+    },
+    "title": "Just a wood cutter",
+    "description": "Chop chop"
+  },
+  "parent": "minecolonies:minecolonies/townhall_place",
+  "criteria": {
+    "place_block": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "block": "minecolonies:blockhutlumberjack"
+      }
+    }
+  }
+}

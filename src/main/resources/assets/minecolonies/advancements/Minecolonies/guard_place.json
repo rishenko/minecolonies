@@ -1,0 +1,18 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecolonies:blockhutguardtower"
+    },
+    "title": "A guarding tower",
+    "description": "All day and night"
+  },
+  "parent": "minecolonies:minecolonies/townhall_place",
+  "criteria": {
+    "place_block": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "block": "minecolonies:blockhutguardtower"
+      }
+    }
+  }
+}
