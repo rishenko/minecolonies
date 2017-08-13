@@ -1,0 +1,18 @@
+{
+    "display": {
+        "icon": {
+            "item": "minecolonies:supplycampdeployer"
+        },
+        "title": "A camp!",
+        "description": "Learn how to craft supply camp"
+    },
+    "parent": "minecolonies:minecolonies/root",
+    "criteria": {
+        "supplycampdeployer": {
+            "trigger": "minecraft:recipe_unlocked",
+            "conditions": {
+                "recipe": "minecolonies:supplycampdeployer"
+            }
+        }
+    }
+}
