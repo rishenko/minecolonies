@@ -4,16 +4,20 @@
             "item": "minecolonies:supplychestdeployer"
         },
         "title": "Minecolonies",
-        "description": "Learn how to craft supply chest",
+        "description": "Get supply chest",
         "background": "minecraft:textures/blocks/cobblestone.png",
         "show_toast": false,
         "announce_to_chat": true
     },
     "criteria": {
         "supplychestdeployer": {
-            "trigger": "minecraft:recipe_unlocked",
+            "trigger": "minecraft:inventory_changed",
             "conditions": {
-                "recipe": "minecolonies:supplychestdeployer"
+                "items": [
+                    {
+                        "item": "minecolonies:supplychestdeployer"
+                    }
+                ]
             }
         }
     }
